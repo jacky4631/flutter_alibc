@@ -23,7 +23,7 @@
  @param configs 初始化配置
  @param error 异常体现
  */
--(BOOL) setUp:(NSDictionary*) configs
+-(void) setUp:(NSDictionary*) configs
         error:(NSError* __autoreleasing*)error;
 
 
@@ -55,13 +55,13 @@
  @param headerType 目前支持mtop、apache httpclient（0）和java urlconnection（1） http response header格式
  @param error 异常体现
  */
--(BOOL) processFCContent:(int) resCode
+-(void) processFCContent:(int) resCode
                  content:(NSDictionary*) content
           actionCallback:(id<IFCActionCallback>)actionCallback
               headerType:(int)headerType
                    error:(NSError* __autoreleasing*)error;
 
--(BOOL) processFCContentV2:(NSString*) content
+-(void) processFCContentV2:(NSString*) content
             actionCallback:(id<IFCActionCallback>)actionCallback
                      error:(NSError* __autoreleasing*)error;
 
