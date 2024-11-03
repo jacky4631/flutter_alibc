@@ -47,13 +47,6 @@ typedef void (^LOGIN_COMPLETION_HANDLER) (BOOL isSuccessful, NSDictionary* login
  */
 typedef void (^LOGIN_CANCELATION_HANDLER) (void);
 
-/**
- * 登录交互回调 (兼容优酷实现逻辑)
- * @param isNeedLogin  YES表示需要拉起登录，NO表示不需要拉起登录
- */
-typedef void (^LOGIN_INTERACTIVE_BLOCK) (BOOL isNeedLogin);
-
-
 @protocol LoginProtocol <NSObject>
 
 @optional
@@ -119,8 +112,14 @@ typedef void (^LOGIN_INTERACTIVE_BLOCK) (BOOL isNeedLogin);
  */
 - (void) markInvalidLogin;
 
+
 /**
- * !!!!!!!!该方法优酷兼容专用，非优酷请勿实现!!!!!!!!
+ * 登录交互回调 (兼容优酷实现逻辑)
+ * @param isNeedLogin  YES表示需要拉起登录，NO表示不需要拉起登录
+ */
+typedef void (^LOGIN_INTERACTIVE_BLOCK) (BOOL isNeedLogin);
+
+/**
  * 标识本地session已经失效 (兼容优酷实现逻辑)
  * @param  errorMsg   会话过期详细错误
  * @param  block      登录交互回调

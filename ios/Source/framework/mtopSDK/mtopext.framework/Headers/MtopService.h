@@ -79,9 +79,9 @@
 
 
 /**
- * 兼容原三方API，返回三方实例，ID为 MTOP_ID_OPEN. 该方法线程安全。
+ * 获取默认实例，实例ID为 MTOP_ID_OPEN. 该方法线程安全。
  *
- * @return MTOP三方实例
+ * @return MTOP实例
  */
 + (nullable instancetype) shareInstance DEPRECATED_MSG_ATTRIBUTE("兼容原三方API");
 
