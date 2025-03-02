@@ -39,7 +39,7 @@ class FlutterAlibcHandle(var methodChannel: MethodChannel?){
      * @param result
      */
     fun initAlibc(result: MethodChannel.Result){
-        AlibcTradeSDK.asyncInit(activity!!.application, object : AlibcTradeInitCallback {
+        AlibcTradeSDK.init(activity!!.application, object : AlibcTradeInitCallback {
             override fun onSuccess() {
                 result.success(PluginResponse.success(null).toMap())
             }
@@ -47,7 +47,7 @@ class FlutterAlibcHandle(var methodChannel: MethodChannel?){
             override fun onFailure(code: Int, msg: String?) {
                 result.success(PluginResponse(code.toString(), msg, null).toMap())
             }
-        })
+        }, com.alibaba.baichuan.android.trade.AlibcTradeSDK.InitStrategy.INIT)
     }
 
     /**
