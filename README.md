@@ -7,7 +7,7 @@ Flutter版本的阿里百川，原作者维护太慢，这个插件以后我自�
 # 百川SDK版本
 
 ```
-Android标准版  4.1.0.7 
+Android标准版  4.1.0.8 
 iOS标准版      4.1.0.4
 ```
 
@@ -26,7 +26,7 @@ Android: 注意在新版本gradle编译时,会强制校验远程仓库是否存�
 
 ### 注意点
 
-1. 该版本需使用V6版本的安全图片，V6版本的安全图片可在[百川套件平台](https://suite.baichuan.taobao.com/?spm=a3c0d.7629140.0.0.70e6be48TzC7BS)下载。
+1. 该版本需使用V6.1版本的安全图片，V6.1版本的安全图片可在[百川套件平台](https://suite.baichuan.taobao.com/?spm=a3c0d.7629140.0.0.70e6be48TzC7BS)下载。
 2. 通过第1步，重新下载V6版本的安全图，并把yw_1222.jpg文件名改为yw_1222_baichuan.jpg。
 
 ### 方法说明
