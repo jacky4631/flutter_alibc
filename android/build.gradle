@@ -30,6 +30,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace "com.mailvor.flutter_alibc"  // 示例包名，需修改为实际包名
+
     compileSdkVersion 31
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
