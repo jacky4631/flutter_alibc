@@ -49,6 +49,10 @@ class FlutterAlibcUltimatePlugin: FlutterPlugin, MethodCallHandler, ActivityAwar
       handle?.syncForTaoke(call)
     } else if (call.method == "useAlipayNative") {
       handle?.useAlipayNative(call)
+    } else if (call.method == "openTradePageByCode") {
+      handle?.openTradePageByCode(call, result)
+    } else if (call.method == "getConfig") {
+      handle?.getConfig(result)
     } else {
       result.notImplemented()
     }

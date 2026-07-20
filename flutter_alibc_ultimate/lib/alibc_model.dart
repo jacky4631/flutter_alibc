@@ -90,3 +90,41 @@ class PayResult {
 
   PayResult(this.paySuccessOrders, this.payFailedOrders);
 }
+
+/// openTradePageByCode 的业务传参
+class AlibcTradeUrlParams {
+  /// 商品id
+  String? id;
+
+  /// 店铺id
+  String? shopId;
+
+  /// 业务扩展传参
+  Map? bizExtMap;
+
+  AlibcTradeUrlParams({this.id, this.shopId, this.bizExtMap});
+
+  Map<String, dynamic> toMap() {
+    return {
+      "id": id ?? "",
+      "shopId": shopId ?? "",
+      "bizExtMap": bizExtMap ?? {},
+    };
+  }
+}
+
+/// 配置服务查询结果
+class AlibcConfigModel {
+  /// 所有套件码
+  List<String>? suiteCodes;
+
+  /// 所有页面码
+  List<String>? pageCodes;
+
+  AlibcConfigModel({this.suiteCodes, this.pageCodes});
+
+  AlibcConfigModel.fromJson(Map<String, dynamic> map) {
+    suiteCodes = (map['suiteCodes'] as List?)?.cast<String>();
+    pageCodes = (map['pageCodes'] as List?)?.cast<String>();
+  }
+}

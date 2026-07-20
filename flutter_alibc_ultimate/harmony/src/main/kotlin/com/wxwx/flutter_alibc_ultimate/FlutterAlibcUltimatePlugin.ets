@@ -69,6 +69,12 @@ class FlutterAlibcUltimateHandler implements FlutterEmbed.MethodCallHandler {
       case 'useAlipayNative':
         this.useAlipayNative(call, result);
         break;
+      case 'openTradePageByCode':
+        this.openTradePageByCode(call, result);
+        break;
+      case 'getConfig':
+        this.getConfig(call, result);
+        break;
       default:
         result.notImplemented();
         break;
@@ -129,5 +135,15 @@ class FlutterAlibcUltimateHandler implements FlutterEmbed.MethodCallHandler {
   private useAlipayNative(call: FlutterEmbed.MethodCall, result: FlutterEmbed.Result) {
     // TODO: 调用旗舰版SDK设置是否使用原生支付宝
     result.success({ errorCode: '0', errorMessage: 'success' });
+  }
+
+  private openTradePageByCode(call: FlutterEmbed.MethodCall, result: FlutterEmbed.Result) {
+    // TODO: 调用旗舰版SDK通用openTradePageByCode
+    result.success({ errorCode: '0', errorMessage: 'success' });
+  }
+
+  private getConfig(call: FlutterEmbed.MethodCall, result: FlutterEmbed.Result) {
+    // TODO: 调用旗舰版SDK查询配置服务
+    result.success({ errorCode: '0', errorMessage: 'success', data: { suiteCodes: [], pageCodes: [] } });
   }
 }

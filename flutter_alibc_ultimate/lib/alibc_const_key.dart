@@ -41,7 +41,8 @@ enum CallBackType {
   AlibcOpenCar,
   AlibcOpenDetail,
   AlibcOpenShop,
-  AlibcOpenPriceProtection
+  AlibcOpenPriceProtection,
+  AlibcOpenTradePageByCode
 }
 
 T? enumFromString<T>(Iterable<T> values, String value) {

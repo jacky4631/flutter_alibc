@@ -20,5 +20,6 @@ struct FlutterAlibcUltimateConstKey {
         case AlibcOpenDetail = "AlibcOpenDetail"
         case AlibcOpenShop = "AlibcOpenShop"
         case AlibcOpenPriceProtection = "AlibcOpenPriceProtection"
+        case AlibcOpenTradePageByCode = "AlibcOpenTradePageByCode"
     }
 }

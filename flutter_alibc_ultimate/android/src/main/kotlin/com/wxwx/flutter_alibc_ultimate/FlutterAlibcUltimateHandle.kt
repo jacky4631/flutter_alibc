@@ -310,4 +310,86 @@ class FlutterAlibcUltimateHandle(var methodChannel: MethodChannel?){
     fun useAlipayNative(call: MethodCall) {
         // AlibcTradeSDK.setShouldUseAlipay(call.argument<Boolean>("isNeed")!!)
     }
+
+    /**
+     * 通用 openTradePageByCode
+     * 通过任意 pageCode 打开电商套件页面
+     */
+    fun openTradePageByCode(call: MethodCall, result: MethodChannel.Result) {
+        val showParams = AlibcShowParams()
+        var taokeParams: AlibcTaokeParams? = AlibcTaokeParams("", "", "")
+        showParams.backUrl = call.argument(PluginConstants.key_BackUrl)
+        if (call.argument<Any?>(PluginConstants.key_OpenType) != null) {
+            showParams.openType = PluginUtil.getOpenType("" + call.argument<Any>(PluginConstants.key_OpenType))
+        }
+        if (call.argument<Any?>(PluginConstants.key_ClientType) != null) {
+            showParams.clientType = PluginUtil.getClientType("" + call.argument<Any>(PluginConstants.key_ClientType))
+        }
+        if (call.argument<Any?>("taokeParams") != null) {
+            taokeParams = PluginUtil.getTaokeParams(call.argument<Map<String?, Any?>>("taokeParams")!!)
+        }
+        if ("false" == call.argument<Any>("isNeedCustomNativeFailMode")) {
+            showParams.nativeOpenFailedMode = AlibcFailModeType.AlibcNativeFailModeNONE
+        } else if (call.argument<Any?>(PluginConstants.key_NativeFailMode) != null) {
+            showParams.nativeOpenFailedMode = PluginUtil.getFailModeType("" + call.argument<Any>(PluginConstants.key_NativeFailMode))
+        }
+        val trackParams: Map<String, String> = HashMap()
+        val pageCode = call.argument<String>("pageCode") ?: ""
+
+        // 解析 urlParams
+        val bizParams = AlibcBizParams()
+        val urlParamsMap = call.argument<Map<String, Any?>>("urlParams")
+        if (urlParamsMap != null) {
+            val id = urlParamsMap["id"] as? String ?: ""
+            val shopId = urlParamsMap["shopId"] as? String ?: ""
+            val bizExtMap = urlParamsMap["bizExtMap"] as? Map<String, String>
+            if (id.isNotEmpty()) {
+                bizParams.id = id
+            }
+            if (shopId.isNotEmpty()) {
+                bizParams.shopId = shopId
+            }
+            if (bizExtMap != null && bizExtMap.isNotEmpty()) {
+                bizParams.bizExtMap = bizExtMap
+            }
+        }
+
+        AlibcTradeUltimate.openByCode(activity, pageCode, bizParams, showParams,
+                taokeParams, trackParams, object : AlibcTradeCallback {
+            override fun onTradeSuccess(tradeResult: AlibcTradeResult) {
+                val results: MutableMap<String, Any> = HashMap()
+                if (AlibcResultType.TYPECART == tradeResult.resultType) {
+                    results["type"] = 1
+                } else if (AlibcResultType.TYPEPAY == tradeResult.resultType) {
+                    results["type"] = 0
+                    results["payFailedOrders"] = tradeResult.payResult.payFailedOrders
+                    results["paySuccessOrders"] = tradeResult.payResult.paySuccessOrders
+                }
+                methodChannel!!.invokeMethod("AlibcOpenTradePageByCode", PluginResponse.success(results).toMap())
+            }
+            override fun onFailure(code: Int, msg: String) {
+                methodChannel!!.invokeMethod("AlibcOpenTradePageByCode", PluginResponse(code.toString(), msg, null).toMap())
+            }
+        })
+    }
+
+    /**
+     * 查询配置服务 - 获取可用的套件码和页面码
+     */
+    fun getConfig(result: MethodChannel.Result) {
+        try {
+            val configService = AlibcTradeSDK.getConfigService()
+            val data = HashMap<String, Any>()
+            if (configService != null) {
+                data["suiteCodes"] = configService.allSuiteCodes ?: listOf<String>()
+                data["pageCodes"] = configService.allPageCodes ?: listOf<String>()
+            } else {
+                data["suiteCodes"] = listOf<String>()
+                data["pageCodes"] = listOf<String>()
+            }
+            result.success(PluginResponse.success(data).toMap())
+        } catch (e: Exception) {
+            result.success(PluginResponse("-1", e.message ?: "getConfig error", null).toMap())
+        }
+    }
 }

@@ -41,6 +41,10 @@ public class SwiftFlutterAlibcUltimatePlugin: NSObject, FlutterPlugin {
             alibchandler?.syncForTaoke(call: call, result: result)
         } else if call.method == "useAlipayNative"{
             alibchandler?.useAlipayNative(call: call, result: result)
+        } else if call.method == "openTradePageByCode"{
+            alibchandler?.openTradePageByCode(call: call, result: result, callBackString: FlutterAlibcUltimateConstKey.CallBackString.AlibcOpenTradePageByCode.rawValue)
+        } else if call.method == "getConfig"{
+            alibchandler?.getConfig(call: call, result: result)
         }else{
             result(FlutterMethodNotImplemented)
         }

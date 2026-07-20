@@ -248,6 +248,82 @@ class FlutterAlibcUltimateHandle: NSObject, AlibcUltimateWkWebViewDelegate {
         AlibcTradeSDK.sharedInstance().setShouldUseAlizfNative(isNeed)
     }
 
+    //    MARK:  通用 openTradePageByCode
+    public func openTradePageByCode(call : FlutterMethodCall , result : @escaping FlutterResult, callBackString: String){
+        let rootViewController : UIViewController = UIApplication.shared.windows.last!.rootViewController!
+        let pageCode : String = getStringFromCall(key: "pageCode", call: call)
+        let showParams = AlibcTradeShowParams.init()
+        showParams.backUrl = getStringFromCall(key: "backUrl", call: call)
+        showParams.isNeedPush = true
+        showParams.isNeedCustomNativeFailMode = getBoolFromCall(key: "isNeedCustomNativeFailMode", call: call)
+        let tmpType : Int = (getNumberFromCall(key: "openType", call: call)).intValue;
+        showParams.openType = self.openType(mode: tmpType)
+        let failMode : Int = (getNumberFromCall(key: "nativeFailMode", call: call)).intValue;
+        showParams.nativeFailMode = NativeFailMode(mode: failMode)
+        let tmpSchemeType : Int = (getNumberFromCall(key: "schemeType", call: call)).intValue;
+        showParams.linkKey = schemeType(mode: tmpSchemeType)
+        let taokeParam = getTaokeParams(call: call) ?? nil
+        let trackParam : Dictionary<String,Any>? = getDicFromCall(key: "trackParam", call: call) ?? nil
+
+        // 解析 urlParams
+        let urlParams = AlibcTradeUrlParams.init()
+        if let urlParamsMap = getDicFromCall(key: "urlParams", call: call) {
+            if let id = urlParamsMap["id"] as? String, !id.isEmpty {
+                urlParams.id = id
+            }
+            if let shopId = urlParamsMap["shopId"] as? String, !shopId.isEmpty {
+                urlParams.shopId = shopId
+            }
+            if let bizExtMap = urlParamsMap["bizExtMap"] as? [String: Any], !bizExtMap.isEmpty {
+                urlParams.bizExtMap = bizExtMap
+            }
+        }
+
+        AlibcTradeSDK.sharedInstance().tradeService()?.openTradePage(byCode: pageCode, parentController: rootViewController, urlParams: urlParams, showParams: showParams, taoKeParams: taokeParam, trackParam: trackParam, openUrlCallBack: { error, resultDic in
+            if let error = error {
+                let dic = [FlutterAlibcUltimateConstKey.ErrorCode :String((error as NSError).code) ,FlutterAlibcUltimateConstKey.ErrorMessage:error.localizedDescription] as! Dictionary<String,String>
+                self.channel?.invokeMethod(callBackString, arguments: [dic]);
+            } else {
+                // 判断是否有交易结果数据
+                if let resultData = resultDic as? [String: Any] {
+                    var results = [String: Any]()
+                    if let type = resultData["type"] as? Int {
+                        results["type"] = type
+                    }
+                    if let paySuccessOrders = resultData["paySuccessOrders"] {
+                        results["paySuccessOrders"] = paySuccessOrders
+                    }
+                    if let payFailedOrders = resultData["payFailedOrders"] {
+                        results["payFailedOrders"] = payFailedOrders
+                    }
+                    self.channel?.invokeMethod(callBackString, arguments: [
+                        FlutterAlibcUltimateConstKey.ErrorCode:"0",
+                        FlutterAlibcUltimateConstKey.ErrorMessage:"success",
+                        FlutterAlibcUltimateConstKey.Data: results
+                    ])
+                } else {
+                    self.channel?.invokeMethod(callBackString, arguments: [
+                        FlutterAlibcUltimateConstKey.ErrorCode:"0",
+                        FlutterAlibcUltimateConstKey.ErrorMessage:"success",
+                        FlutterAlibcUltimateConstKey.Data: resultDic as Any
+                    ])
+                }
+            }
+        })
+    }
+
+    //    MARK:  查询配置服务
+    public func getConfig(call : FlutterMethodCall , result : @escaping FlutterResult){
+        let configService = AlibcTradeConfigService.sharedConfig()
+        let data: [String: Any] = [
+            "suiteCodes": configService.allSuiteCodes ?? [],
+            "pageCodes": configService.allPageCodes ?? []
+        ]
+        result([FlutterAlibcUltimateConstKey.ErrorCode: "0",
+                FlutterAlibcUltimateConstKey.ErrorMessage: "success",
+                FlutterAlibcUltimateConstKey.Data: data])
+    }
+
     //    MARK: - 私有方法
     private func openType(mode: Int) -> AlibcOpenType{
         var openType : AlibcOpenType = AlibcOpenType.auto

@@ -23,6 +23,7 @@ class FlutterAlibcUltimate {
     CallBackType.AlibcOpenDetail: null,
     CallBackType.AlibcOpenShop: null,
     CallBackType.AlibcOpenPriceProtection: null,
+    CallBackType.AlibcOpenTradePageByCode: null,
   };
 
   static Future<String?> get platformVersion async {
@@ -136,6 +137,7 @@ class FlutterAlibcUltimate {
       case CallBackType.AlibcOpenDetail:
       case CallBackType.AlibcOpenShop:
       case CallBackType.AlibcOpenPriceProtection:
+      case CallBackType.AlibcOpenTradePageByCode:
         TradeResult tradeResult = AlibcTools.getTradeResult(temp);
         argu = tradeResult;
         break;
@@ -288,5 +290,45 @@ class FlutterAlibcUltimate {
   // 是否需要 Native AliPay 接口
   static useAlipayNative(bool isNeed) {
     _channel.invokeMethod("useAlipayNative", {"isNeed": isNeed});
+  }
+
+  /// 通用 openTradePageByCode
+  /// 通过任意 pageCode 打开电商套件页面
+  /// pageCode: 电商套件页面码（在百川后台配置）
+  /// urlParams: 业务传参（商品id、店铺id、扩展参数等）
+  static void openTradePageByCode({
+    required String pageCode,
+    AlibcTradeUrlParams? urlParams,
+    AlibcOpenType openType = AlibcOpenType.AlibcOpenTypeAuto,
+    bool isNeedCustomNativeFailMode = false,
+    AlibcNativeFailMode nativeFailMode =
+        AlibcNativeFailMode.AlibcNativeFailModeNone,
+    AlibcSchemeType schemeType = AlibcSchemeType.AlibcSchemeTmall,
+    TaokeParams? taokeParams,
+    Map? trackParam,
+    String? backUrl,
+    OpenCallback? callback,
+  }) async {
+    Map? taoKe = AlibcTools.getTaokeMap(taokeParams);
+    _channel.invokeMethod("openTradePageByCode", {
+      "pageCode": pageCode,
+      "urlParams": urlParams?.toMap(),
+      "openType": openType.index,
+      "isNeedCustomNativeFailMode": isNeedCustomNativeFailMode,
+      "nativeFailMode": nativeFailMode.index,
+      "schemeType": schemeType.index,
+      "taokeParams": taoKe,
+      "trackParam": trackParam,
+      "backUrl": backUrl,
+    });
+    _callBackMaps[CallBackType.AlibcOpenTradePageByCode] = callback;
+  }
+
+  /// 查询配置服务
+  /// 返回当前可用的所有套件码和页面码
+  static Future<AlibcConfigModel> getConfig() async {
+    Map result = await _channel.invokeMethod("getConfig");
+    return AlibcConfigModel.fromJson(
+        result[AlibcConstKey.data] ?? result);
   }
 }
