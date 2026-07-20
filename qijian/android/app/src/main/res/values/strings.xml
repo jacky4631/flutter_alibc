@@ -1,0 +1,16 @@
+<resources>
+<!--    <string name="app_name">BcUltimateSDK</string>-->
+    <string name="app_name">旗舰版Demo</string>
+    <string name="open_url">打开链接</string>
+    <string name="open_code">打开code</string>
+    <string name="top_auth">TOP授权</string>
+
+    <string name="login">登录</string>
+    <string name="logout">登出</string>
+    <string name="set_track_param">设置跟踪参数</string>
+    <string name="track_param">跟踪参数</string>
+    <string name="set_taoke_param">设置淘客参数</string>
+    <string name="taoke_param">淘客参数</string>
+    <string name="set_biz_param">设置业务参数</string>
+    <string name="biz_param">业务参数</string>
+</resources>
