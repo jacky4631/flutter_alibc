@@ -1,0 +1,17 @@
+{
+  "apiType": "platform",
+  "compileOptions": {
+    "compatibleSdkVersion": "5.0.0(12)"
+  },
+  "buildOption": {
+    "strictMode": {
+      "useNormalizedOHMUrl": true
+    }
+  },
+  "targets": [
+    {
+      "name": "default",
+      "runtimeOS": "HarmonyOS"
+    }
+  ]
+}

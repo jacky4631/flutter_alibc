@@ -1,0 +1,9 @@
+{
+  "name": "flutter_alibc_ultimate",
+  "version": "1.0.0",
+  "description": "Flutter阿里百川旗舰版鸿蒙插件",
+  "main": "index.ets",
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {}
+}
