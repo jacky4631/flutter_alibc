@@ -1,6 +1,6 @@
 name: flutter_alibc
 description: Flutter版本的阿里百川，android V4.1.0.1 && ios V4.1.0.0
-version: 1.0.0-nullsafety
+version: 1.0.1
 homepage: https://github.com/flutterbest/flutter_alibc_kit.git
 
 environment:
