@@ -43,6 +43,8 @@ class FlutterAlibcUltimatePlugin: FlutterPlugin, MethodCallHandler, ActivityAwar
       handle?.openShop(call, result)
     } else if (call.method == "openCart") {
       handle?.openCart(call, result)
+    } else if (call.method == "openPriceProtection") {
+      handle?.openPriceProtection(call, result)
     } else if (call.method == "syncForTaoke") {
       handle?.syncForTaoke(call)
     } else if (call.method == "useAlipayNative") {

@@ -19,6 +19,8 @@ import com.alibaba.baichuan.trade.biz.context.AlibcTradeResult
 import com.alibaba.baichuan.trade.biz.core.taoke.AlibcTaokeParams
 import com.alibaba.baichuan.trade.biz.login.AlibcLogin
 import com.alibaba.baichuan.trade.biz.login.AlibcLoginCallback
+import com.alibaba.alibcprotocol.param.AlibcBizParams
+import com.baichuan.nb_trade.AlibcTrade as AlibcTradeUltimate
 import com.alibaba.fastjson.JSON
 import com.wxwx.flutter_alibc_ultimate.web.WebViewActivity
 import io.flutter.plugin.common.MethodCall
@@ -206,6 +208,49 @@ class FlutterAlibcUltimateHandle(var methodChannel: MethodChannel?){
     fun openCart(call: MethodCall, result: MethodChannel.Result) {
         val page: AlibcBasePage = AlibcMyCartsPage()
         openByBizCode(page, "cart", "AlibcOpenCar", call, result)
+    }
+
+    /**
+     * 打开保价页 (通过openByCode方式)
+     */
+    fun openPriceProtection(call: MethodCall, result: MethodChannel.Result) {
+        val showParams = AlibcShowParams()
+        var taokeParams: AlibcTaokeParams? = AlibcTaokeParams("", "", "")
+        showParams.backUrl = call.argument(PluginConstants.key_BackUrl)
+        if (call.argument<Any?>(PluginConstants.key_OpenType) != null) {
+            showParams.openType = PluginUtil.getOpenType("" + call.argument<Any>(PluginConstants.key_OpenType))
+        }
+        if (call.argument<Any?>(PluginConstants.key_ClientType) != null) {
+            showParams.clientType = PluginUtil.getClientType("" + call.argument<Any>(PluginConstants.key_ClientType))
+        }
+        if (call.argument<Any?>("taokeParams") != null) {
+            taokeParams = PluginUtil.getTaokeParams(call.argument<Map<String?, Any?>>("taokeParams")!!)
+        }
+        if ("false" == call.argument<Any>("isNeedCustomNativeFailMode")) {
+            showParams.nativeOpenFailedMode = AlibcFailModeType.AlibcNativeFailModeNONE
+        } else if (call.argument<Any?>(PluginConstants.key_NativeFailMode) != null) {
+            showParams.nativeOpenFailedMode = PluginUtil.getFailModeType("" + call.argument<Any>(PluginConstants.key_NativeFailMode))
+        }
+        val trackParams: Map<String, String> = HashMap()
+        val pageCode = call.argument<String>("pageCode") ?: "priceProtection"
+        val bizParams = AlibcBizParams()
+        AlibcTradeUltimate.openByCode(activity, pageCode, bizParams, showParams,
+                taokeParams, trackParams, object : AlibcTradeCallback {
+            override fun onTradeSuccess(tradeResult: AlibcTradeResult) {
+                val results: MutableMap<String, Any> = HashMap()
+                if (AlibcResultType.TYPECART == tradeResult.resultType) {
+                    results["type"] = 1
+                } else if (AlibcResultType.TYPEPAY == tradeResult.resultType) {
+                    results["type"] = 0
+                    results["payFailedOrders"] = tradeResult.payResult.payFailedOrders
+                    results["paySuccessOrders"] = tradeResult.payResult.paySuccessOrders
+                }
+                methodChannel!!.invokeMethod("AlibcOpenPriceProtection", PluginResponse.success(results).toMap())
+            }
+            override fun onFailure(code: Int, msg: String) {
+                methodChannel!!.invokeMethod("AlibcOpenPriceProtection", PluginResponse(code.toString(), msg, null).toMap())
+            }
+        })
     }
 
     /**

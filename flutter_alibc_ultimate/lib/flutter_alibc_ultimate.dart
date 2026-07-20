@@ -22,6 +22,7 @@ class FlutterAlibcUltimate {
     CallBackType.AlibcOpenCar: null,
     CallBackType.AlibcOpenDetail: null,
     CallBackType.AlibcOpenShop: null,
+    CallBackType.AlibcOpenPriceProtection: null,
   };
 
   static Future<String?> get platformVersion async {
@@ -134,6 +135,7 @@ class FlutterAlibcUltimate {
       case CallBackType.AlibcOpenCar:
       case CallBackType.AlibcOpenDetail:
       case CallBackType.AlibcOpenShop:
+      case CallBackType.AlibcOpenPriceProtection:
         TradeResult tradeResult = AlibcTools.getTradeResult(temp);
         argu = tradeResult;
         break;
@@ -249,6 +251,33 @@ class FlutterAlibcUltimate {
       "backUrl": backUrl
     });
     _callBackMaps[CallBackType.AlibcOpenCar] = callback;
+  }
+
+  /// 打开保价页 (通过openTradePageByCode方式)
+  static void openPriceProtection({
+    String pageCode = "priceProtection",
+    AlibcOpenType openType = AlibcOpenType.AlibcOpenTypeAuto,
+    bool isNeedCustomNativeFailMode = false,
+    AlibcNativeFailMode nativeFailMode =
+        AlibcNativeFailMode.AlibcNativeFailModeNone,
+    AlibcSchemeType schemeType = AlibcSchemeType.AlibcSchemeTmall,
+    TaokeParams? taokeParams,
+    Map? trackParam,
+    String? backUrl,
+    OpenCallback? callback,
+  }) async {
+    Map? taoKe = AlibcTools.getTaokeMap(taokeParams);
+    _channel.invokeMethod("openPriceProtection", {
+      "pageCode": pageCode,
+      "openType": openType.index,
+      "isNeedCustomNativeFailMode": isNeedCustomNativeFailMode,
+      "nativeFailMode": nativeFailMode.index,
+      "schemeType": schemeType.index,
+      "taokeParams": taoKe,
+      "trackParam": trackParam,
+      "backUrl": backUrl
+    });
+    _callBackMaps[CallBackType.AlibcOpenPriceProtection] = callback;
   }
 
   // 是否需要设置打点

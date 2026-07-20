@@ -35,6 +35,8 @@ public class SwiftFlutterAlibcUltimatePlugin: NSObject, FlutterPlugin {
             alibchandler?.openShop(call: call, result: result, callBackString: FlutterAlibcUltimateConstKey.CallBackString.AlibcOpenShop.rawValue)
         } else if call.method == "openCart"{
             alibchandler?.openCart(call: call, result: result, callBackString: FlutterAlibcUltimateConstKey.CallBackString.AlibcOpenCar.rawValue)
+        } else if call.method == "openPriceProtection"{
+            alibchandler?.openPriceProtection(call: call, result: result, callBackString: FlutterAlibcUltimateConstKey.CallBackString.AlibcOpenPriceProtection.rawValue)
         } else if call.method == "syncForTaoke"{
             alibchandler?.syncForTaoke(call: call, result: result)
         } else if call.method == "useAlipayNative"{

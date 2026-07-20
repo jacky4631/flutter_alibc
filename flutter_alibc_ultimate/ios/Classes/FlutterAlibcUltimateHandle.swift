@@ -148,9 +148,9 @@ class FlutterAlibcUltimateHandle: NSObject, AlibcUltimateWkWebViewDelegate {
     }
 
     //    MARK: 通过url打开
-    public func openByUrl(call : FlutterMethodCall , result : @escaping FlutterResult, callBackString: String){
+    public func openByUrl(call : FlutterMethodCall , result : @escaping FlutterResult, callBackString: String, overrideUrl: String? = nil){
         let rootViewController : UIViewController = UIApplication.shared.windows.last!.rootViewController!
-        let url : String = getStringFromCall(key: "url", call: call);
+        let url : String = overrideUrl ?? getStringFromCall(key: "url", call: call);
         let showParams = AlibcTradeShowParams.init()
         showParams.backUrl =  getStringFromCall(key: "backUrl", call: call)
         showParams.isNeedPush = true
@@ -203,6 +203,38 @@ class FlutterAlibcUltimateHandle: NSObject, AlibcUltimateWkWebViewDelegate {
     public func openCart(call : FlutterMethodCall , result : @escaping FlutterResult, callBackString: String){
         let page = AlibcTradePageFactory.myCartsPage()
         self.openPageByNewWay(page: page, bizcode: "cart", call: call, result: result, callBackString: callBackString)
+    }
+
+    public func openPriceProtection(call : FlutterMethodCall , result : @escaping FlutterResult, callBackString: String){
+        let rootViewController : UIViewController = UIApplication.shared.windows.last!.rootViewController!
+        let pageCode : String = getStringFromCall(key: "pageCode", call: call)
+        let finalCode = pageCode.isEmpty ? "priceProtection" : pageCode
+        let showParams = AlibcTradeShowParams.init()
+        showParams.backUrl = getStringFromCall(key: "backUrl", call: call)
+        showParams.isNeedPush = true
+        showParams.isNeedCustomNativeFailMode = getBoolFromCall(key: "isNeedCustomNativeFailMode", call: call)
+        let tmpType : Int = (getNumberFromCall(key: "openType", call: call)).intValue;
+        showParams.openType = self.openType(mode: tmpType)
+        let failMode : Int = (getNumberFromCall(key: "nativeFailMode", call: call)).intValue;
+        showParams.nativeFailMode = NativeFailMode(mode: failMode)
+        let tmpSchemeType : Int = (getNumberFromCall(key: "schemeType", call: call)).intValue;
+        showParams.linkKey = schemeType(mode: tmpSchemeType)
+        let taokeParam = getTaokeParams(call: call) ?? nil
+        let trackParam : Dictionary<String,Any>? = getDicFromCall(key: "trackParam", call: call) ?? nil
+        let urlParams = AlibcTradeUrlParams.init()
+
+        AlibcTradeSDK.sharedInstance().tradeService()?.openTradePage(byCode: finalCode, parentController: rootViewController, urlParams: urlParams, showParams: showParams, taoKeParams: taokeParam, trackParam: trackParam, openUrlCallBack: { error, resultDic in
+            if let error = error {
+                let dic = [FlutterAlibcUltimateConstKey.ErrorCode :String((error as NSError).code) ,FlutterAlibcUltimateConstKey.ErrorMessage:error.localizedDescription] as! Dictionary<String,String>
+                self.channel?.invokeMethod(callBackString, arguments: [dic]);
+            } else {
+                self.channel?.invokeMethod(callBackString, arguments: [
+                    FlutterAlibcUltimateConstKey.ErrorCode:"0",
+                    FlutterAlibcUltimateConstKey.ErrorMessage:"success",
+                    FlutterAlibcUltimateConstKey.Data: resultDic as Any
+                ])
+            }
+        })
     }
 
     public func syncForTaoke(call : FlutterMethodCall , result : @escaping FlutterResult){
