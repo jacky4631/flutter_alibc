@@ -2,10 +2,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "flutter_alibc_kit",
+    name: "flutter_alibc",
     platforms: [.iOS(.v11)],
     products: [
-        .library(name: "flutter-alibc", targets: ["flutter_alibc"]),
+        .library(name: "flutter_alibc", targets: ["flutter_alibc"]),
     ],
     dependencies: [],
     targets: [
