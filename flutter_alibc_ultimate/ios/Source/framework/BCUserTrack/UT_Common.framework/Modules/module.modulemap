@@ -1,6 +1,0 @@
-framework module UT_Common {
-  umbrella header "UT_Common.h"
-  export *
-
-  module * { export * }
-}

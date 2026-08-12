@@ -1,6 +1,0 @@
-framework module RiverLogger {
-  umbrella header "RiverLogger.h"
-
-  export *
-  module * { export * }
-}
