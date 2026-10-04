@@ -16,12 +16,14 @@ import {
   MethodResult,
 } from '@ohos/flutter_ohos';
 import { common } from '@kit.AbilityKit';
+import hilog from '@ohos.hilog';
+import { Alibc } from '@ohos/alibc';
 import FlutterAlibcHandle from './FlutterAlibcHandle';
-import { buildSuccessResponse, buildErrorResponse } from './PluginUtil';
 import { AlibcConstKey } from './FlutterAlibcConst';
 
 const CHANNEL_NAME: string = "flutter_alibc";
 const TAG: string = 'FlutterAlibcPlugin';
+const DOMAIN: number = 0xF101;
 
 export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHandler, AbilityAware {
   private channel: MethodChannel | null = null;
@@ -33,14 +35,14 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
   }
 
   onAttachedToEngine(binding: FlutterPluginBinding): void {
-    console.info(TAG, 'onAttachedToEngine');
+    hilog.info(DOMAIN, TAG, 'onAttachedToEngine');
     this.channel = new MethodChannel(binding.getBinaryMessenger(), CHANNEL_NAME);
     this.channel.setMethodCallHandler(this);
     this.handle = new FlutterAlibcHandle(this.channel);
   }
 
   onDetachedFromEngine(binding: FlutterPluginBinding): void {
-    console.info(TAG, 'onDetachedFromEngine');
+    hilog.info(DOMAIN, TAG, 'onDetachedFromEngine');
     this.channel?.setMethodCallHandler(null);
     this.handle?.dispose();
     this.channel = null;
@@ -48,7 +50,7 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
   }
 
   onAttachedToAbility(binding: AbilityPluginBinding): void {
-    console.info(TAG, 'onAttachedToAbility');
+    hilog.info(DOMAIN, TAG, 'onAttachedToAbility');
     this.context = binding.getAbility().context;
     if (this.handle !== null && this.context !== null) {
       this.handle.setContext(this.context);
@@ -56,7 +58,7 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
   }
 
   onDetachedFromAbility(): void {
-    console.info(TAG, 'onDetachedFromAbility');
+    hilog.info(DOMAIN, TAG, 'onDetachedFromAbility');
     this.context = null;
   }
 
@@ -67,8 +69,8 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
         break;
 
       case "initAlibc": {
-        const version = call.argument<string>("version") ?? null;
-        const appName = call.argument<string>("appName") ?? null;
+        const version = call.argument<string>(AlibcConstKey.KeyVersion) ?? null;
+        const appName = call.argument<string>(AlibcConstKey.KeyAppName) ?? null;
         this.handle?.initAlibc(version, appName, (response: Record<string, Object | null>) => {
           result.success(response);
         });
@@ -77,7 +79,7 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
 
       case "loginTaoBao":
         this.handle?.loginTaoBao();
-        // 登录结果通过 channel.invokeMethod 异步回调，此处不直接 result
+        // 登录结果通过 channel.invokeMethod 异步回调
         break;
 
       case "loginOut":
@@ -100,44 +102,36 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
 
       case "openByUrl": {
         const args = call.arguments as Record<string, Object>;
-        this.handle?.openByUrl(args, (response: Record<string, Object | null>) => {
-          // openByUrl 的结果通过 channel.invokeMethod 回调
-        });
+        this.handle?.openByUrl(args);
         break;
       }
 
       case "openItemDetail": {
         const args = call.arguments as Record<string, Object>;
-        this.handle?.openItemDetail(args, (response: Record<string, Object | null>) => {
-          // openItemDetail 的结果通过 channel.invokeMethod 回调
-        });
+        this.handle?.openItemDetail(args);
         break;
       }
 
       case "openShop": {
         const args = call.arguments as Record<string, Object>;
-        this.handle?.openShop(args, (response: Record<string, Object | null>) => {
-          // openShop 的结果通过 channel.invokeMethod 回调
-        });
+        this.handle?.openShop(args);
         break;
       }
 
       case "openCart": {
         const args = call.arguments as Record<string, Object>;
-        this.handle?.openCart(args, (response: Record<string, Object | null>) => {
-          // openCart 的结果通过 channel.invokeMethod 回调
-        });
+        this.handle?.openCart(args);
         break;
       }
 
       case "syncForTaoke": {
-        const isSync = call.argument<boolean>("isSync") ?? false;
+        const isSync = call.argument<boolean>(AlibcConstKey.KeyIsSync) ?? false;
         this.handle?.syncForTaoke(isSync);
         break;
       }
 
       case "useAlipayNative": {
-        const isNeed = call.argument<boolean>("isNeed") ?? false;
+        const isNeed = call.argument<boolean>(AlibcConstKey.KeyIsNeed) ?? false;
         this.handle?.useAlipayNative(isNeed);
         break;
       }

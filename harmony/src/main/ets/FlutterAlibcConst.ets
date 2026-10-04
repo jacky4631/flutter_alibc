@@ -18,16 +18,23 @@ export class AlibcConstKey {
   static readonly KeyIsNeedCustomNativeFailMode: string = "isNeedCustomNativeFailMode";
   static readonly KeyTaokeParams: string = "taokeParams";
   static readonly KeyTrackParam: string = "trackParam";
+  static readonly KeyUrl: string = "url";
+  static readonly KeyItemID: string = "itemID";
+  static readonly KeyShopId: string = "shopId";
+  static readonly KeyIsSync: string = "isSync";
+  static readonly KeyIsNeed: string = "isNeed";
+  static readonly KeyVersion: string = "version";
+  static readonly KeyAppName: string = "appName";
 
   // 枚举值 - OpenType
   static readonly AutoOpenType: number = 0;
   static readonly NativeOpenType: number = 1;
 
-  // 枚举值 - SchemeType
+  // 枚举值 - SchemeType (clientType)
   static readonly TmallSchemeType: number = 0;
   static readonly TaoBaoSchemeType: number = 1;
 
-  // 枚举值 - NativeFailMode
+  // 枚举值 - NativeFailMode (degradeType)
   static readonly JumpH5FailMode: number = 0;
   static readonly JumpDownloadPageFailMode: number = 1;
   static readonly NoneFailMode: number = 2;

@@ -1,22 +1,18 @@
 /**
  * 阿里百川业务处理类
  * 对应 Android 端 FlutterAlibcHandle.kt
- *
- * 注意：由于鸿蒙版百川 SDK 的 API 可能与 Android 有差异，
- * 标记为 TODO 的地方需要根据实际 SDK 文档进行调整。
+ * 使用鸿蒙百川 SDK 实际 API：Alibc.init / login / logout / authorize / openByUrl
  */
 
 import { MethodChannel } from '@ohos/flutter_ohos';
 import { common } from '@kit.AbilityKit';
+import hilog from '@ohos.hilog';
+import { Alibc, AlibcShowParams, AlibcTaokeParams } from '@ohos/alibc';
 import { AlibcConstKey, CallBackType, TradeResultType } from './FlutterAlibcConst';
-import { buildSuccessResponse, buildErrorResponse, getOpenType, getSchemeType, getNativeFailMode, getTaokeParams } from './PluginUtil';
-
-// TODO: 根据实际鸿蒙百川 SDK 的导入路径调整
-// import { AlibcTradeSDK } from 'alibc';
-// import { AlibcLogin } from 'alibc';
-// import { AlibcTrade } from 'alibc';
+import { buildSuccessResponse, buildErrorResponse, buildShowParams, buildTaokeParams } from './PluginUtil';
 
 const TAG: string = 'FlutterAlibcHandle';
+const DOMAIN: number = 0xF101;
 
 export default class FlutterAlibcHandle {
   private channel: MethodChannel | null = null;
@@ -37,215 +33,252 @@ export default class FlutterAlibcHandle {
 
   /**
    * 初始化阿里百川
+   * 对应 SDK: Alibc.init({ context, onSuccess, onFailure })
    */
   initAlibc(version: string | null, appName: string | null, callback: (result: Record<string, Object | null>) => void): void {
-    // TODO: 替换为鸿蒙百川 SDK 的实际初始化 API
-    // 参考 Android:
-    // AlibcTradeSDK.init(application, callback, InitStrategy.INIT)
-    //
-    // 示例（需根据实际 SDK 调整）:
-    // AlibcTradeSDK.getInstance().init({
-    //   version: version ?? "",
-    //   appName: appName ?? ""
-    // }, (success: boolean, code: number, msg: string) => {
-    //   if (success) {
-    //     callback(buildSuccessResponse());
-    //   } else {
-    //     callback(buildErrorResponse(code.toString(), msg));
-    //   }
-    // });
+    if (this.context === null) {
+      callback(buildErrorResponse("-1", "context is null, please call init after ability attached"));
+      return;
+    }
 
-    // 临时占位实现
-    console.info(TAG, `initAlibc called, version=${version}, appName=${appName}`);
-    callback(buildSuccessResponse());
+    Alibc.init({
+      context: this.context,
+      onSuccess: () => {
+        hilog.info(DOMAIN, TAG, 'Alibc init success');
+        callback(buildSuccessResponse());
+      },
+      onFailure: (code: number, msg: string) => {
+        hilog.error(DOMAIN, TAG, 'Alibc init fail code: %{public}d, msg: %{public}s', code, msg);
+        callback(buildErrorResponse(code.toString(), msg));
+      }
+    });
   }
 
   /**
    * 登录淘宝
+   * 对应 SDK: Alibc.login({ onSuccess, onFailure })
+   * 登录成功后通过 channel.invokeMethod 回调 Dart 层
    */
   loginTaoBao(): void {
-    // TODO: 替换为鸿蒙百川 SDK 的实际登录 API
-    // 参考 Android:
-    // AlibcLogin.getInstance().showLogin(callback)
-    //
-    // 示例（需根据实际 SDK 调整）:
-    // const alibcLogin = AlibcLogin.getInstance();
-    // if (alibcLogin.isLogin()) {
-    //   const session = alibcLogin.getSession();
-    //   const userInfo: Record<string, string> = {
-    //     "nick": session.nick ?? "",
-    //     "avatarUrl": session.avatarUrl ?? "",
-    //     "openId": session.openId ?? "",
-    //     "openSid": session.openSid ?? "",
-    //     "topAccessToken": session.topAccessToken ?? "",
-    //     "topAuthCode": session.topAuthCode ?? "",
-    //   };
-    //   this.channel?.invokeMethod(CallBackType.AlibcTaobaoLogin, buildSuccessResponse(userInfo));
-    // } else {
-    //   alibcLogin.showLogin({
-    //     onSuccess: (loginResult: number, openId: string, nickName: string) => {
-    //       const session = alibcLogin.getSession();
-    //       const userInfo: Record<string, string> = {
-    //         "nick": session.nick ?? "",
-    //         "avatarUrl": session.avatarUrl ?? "",
-    //         "openId": session.openId ?? "",
-    //         "openSid": session.openSid ?? "",
-    //         "topAccessToken": session.topAccessToken ?? "",
-    //         "topAuthCode": session.topAuthCode ?? "",
-    //       };
-    //       this.channel?.invokeMethod(CallBackType.AlibcTaobaoLogin, buildSuccessResponse(userInfo));
-    //     },
-    //     onFailure: (code: number, msg: string) => {
-    //       this.channel?.invokeMethod(CallBackType.AlibcTaobaoLogin, buildErrorResponse(code.toString(), msg));
-    //     }
-    //   });
-    // }
-
-    console.info(TAG, 'loginTaoBao called');
+    Alibc.login({
+      onSuccess: (user) => {
+        hilog.info(DOMAIN, TAG, 'login success, openId: %{public}s', user?.openId ?? '');
+        const userInfo: Record<string, string> = {
+          "nick": user?.nick ?? '',
+          "avatarUrl": user?.avatarUrl ?? '',
+          "openId": user?.openId ?? '',
+          "openSid": user?.openSid ?? '',
+          "topAccessToken": user?.topAccessToken ?? '',
+          "topAuthCode": user?.topAuthCode ?? '',
+        };
+        this.channel?.invokeMethod(CallBackType.AlibcTaobaoLogin, buildSuccessResponse(userInfo));
+      },
+      onFailure: (code: string, msg: string) => {
+        hilog.error(DOMAIN, TAG, 'login fail code: %{public}s, msg: %{public}s', code, msg);
+        this.channel?.invokeMethod(CallBackType.AlibcTaobaoLogin, buildErrorResponse(code, msg));
+      }
+    });
   }
 
   /**
    * 登出淘宝
+   * 对应 SDK: Alibc.logout({ onComplete })
    */
   logoutTaoBao(callback: (result: Record<string, Object | null>) => void): void {
-    // TODO: 替换为鸿蒙百川 SDK 的实际登出 API
-    // 参考 Android:
-    // AlibcLogin.getInstance().logout(callback)
-
-    console.info(TAG, 'logoutTaoBao called');
-    callback(buildSuccessResponse());
+    Alibc.logout({
+      onComplete: () => {
+        hilog.info(DOMAIN, TAG, 'logout complete');
+        callback(buildSuccessResponse());
+      }
+    });
   }
 
   /**
    * 淘客授权登录 - 获取 access_token
+   * 对应 SDK: Alibc.authorize({ appName, appLogoSrc, appKey, onSuccess, onFailure })
    */
   taoKeLogin(args: Record<string, Object>): void {
-    const url = (args["url"] as string) ?? "";
-    const backUrl = (args[AlibcConstKey.KeyBackUrl] as string) ?? "";
-    const openTypeIndex = (args[AlibcConstKey.KeyOpenType] as number) ?? 0;
-    const schemeTypeIndex = (args[AlibcConstKey.KeySchemeType] as number) ?? 0;
-    const failModeIndex = (args[AlibcConstKey.KeyNativeFailMode] as number) ?? 2;
-    const isNeedCustomFailMode = (args[AlibcConstKey.KeyIsNeedCustomNativeFailMode] as boolean) ?? false;
-    const taokeParamsMap = args[AlibcConstKey.KeyTaokeParams] as Record<string, Object> | null;
+    const url = (args[AlibcConstKey.KeyUrl] as string) ?? "";
 
-    // TODO: 替换为鸿蒙百川 SDK 的实际淘客授权 API
-    // 参考 Android: 通过 WebViewActivity 承载授权页面
-    // 需要在鸿蒙端使用 Web 组件实现类似功能
-
-    console.info(TAG, `taoKeLogin called, url=${url}`);
-
-    // 占位：通过 WebView 打开授权 URL，拦截回调获取 token
-    // 实际实现需要使用鸿蒙的 Web 组件加载 URL，
-    // 并监听页面跳转拦截来获取 accessToken
+    Alibc.authorize({
+      appName: 'flutter_alibc',
+      appKey: Alibc.getAppKey(),
+      onSuccess: (params) => {
+        hilog.info(DOMAIN, TAG, 'authorize success, accessToken: %{public}s', params.accessToken);
+        const resMap: Record<string, string> = {
+          "accessToken": params.accessToken
+        };
+        this.channel?.invokeMethod(CallBackType.AlibcTaokeLogin, buildSuccessResponse(resMap));
+      },
+      onFailure: (code: string, msg: string) => {
+        hilog.error(DOMAIN, TAG, 'authorize fail code: %{public}s, msg: %{public}s', code, msg);
+        this.channel?.invokeMethod(CallBackType.AlibcTaokeLogin, buildErrorResponse(code, msg));
+      }
+    });
   }
 
   /**
-   * 淘客授权登录 - 获取 code
+   * 淘客授权登录 - 获取 code 授权码
+   * 鸿蒙 SDK 的 authorize 返回的是 accessToken，
+   * 如果需要 code，可能需要通过不同的参数或 API 实现。
+   * 暂时复用 authorize，将返回的 accessToken 作为 code 传递。
+   * TODO: 确认鸿蒙 SDK 是否有单独获取 code 的 API
    */
   taoKeLoginForCode(args: Record<string, Object>): void {
-    const url = (args["url"] as string) ?? "";
-    const backUrl = (args[AlibcConstKey.KeyBackUrl] as string) ?? "";
+    const url = (args[AlibcConstKey.KeyUrl] as string) ?? "";
 
-    // TODO: 替换为鸿蒙百川 SDK 的实际授权 API
-    // 与 taoKeLogin 类似，但回调返回的是 code 而非 token
-
-    console.info(TAG, `taoKeLoginForCode called, url=${url}`);
+    Alibc.authorize({
+      appName: 'flutter_alibc',
+      appKey: Alibc.getAppKey(),
+      onSuccess: (params) => {
+        hilog.info(DOMAIN, TAG, 'authorize for code success, accessToken: %{public}s', params.accessToken);
+        const resMap: Record<string, string> = {
+          "code": params.accessToken
+        };
+        this.channel?.invokeMethod(CallBackType.AlibcTaokeLoginForCode, buildSuccessResponse(resMap));
+      },
+      onFailure: (code: string, msg: string) => {
+        hilog.error(DOMAIN, TAG, 'authorize for code fail code: %{public}s, msg: %{public}s', code, msg);
+        this.channel?.invokeMethod(CallBackType.AlibcTaokeLoginForCode, buildErrorResponse(code, msg));
+      }
+    });
   }
 
   /**
    * 通过 URL 方式打开淘宝
+   * 对应 SDK: Alibc.openByUrl({ url, onSuccess, onFailure, showParams, taokeParams, needBaichuanLinkConvert })
    */
-  openByUrl(args: Record<string, Object>, callback: (result: Record<string, Object | null>) => void): void {
-    const url = (args["url"] as string) ?? "";
-    const backUrl = (args[AlibcConstKey.KeyBackUrl] as string) ?? "";
-    const openTypeIndex = (args[AlibcConstKey.KeyOpenType] as number) ?? 0;
-    const schemeTypeIndex = (args[AlibcConstKey.KeySchemeType] as number) ?? 0;
-    const failModeIndex = (args[AlibcConstKey.KeyNativeFailMode] as number) ?? 2;
-    const isNeedCustomFailMode = (args[AlibcConstKey.KeyIsNeedCustomNativeFailMode] as boolean) ?? false;
-    const taokeParamsMap = args[AlibcConstKey.KeyTaokeParams] as Record<string, Object> | null;
+  openByUrl(args: Record<string, Object>): void {
+    const url = (args[AlibcConstKey.KeyUrl] as string) ?? "";
+    const showParams: AlibcShowParams = buildShowParams(args);
+    const taokeParams: AlibcTaokeParams = buildTaokeParams(args);
 
-    // TODO: 替换为鸿蒙百川 SDK 的实际 API
-    // 参考 Android:
-    // AlibcTrade.openByUrl(activity, "", url, null, WebViewClient(), WebChromeClient(),
-    //   showParams, taokeParams, trackParams, callback)
-
-    console.info(TAG, `openByUrl called, url=${url}`);
+    Alibc.openByUrl({
+      url,
+      showParams,
+      taokeParams,
+      needBaichuanLinkConvert: false,
+      onSuccess: (code: number, msg: string) => {
+        hilog.info(DOMAIN, TAG, 'openByUrl success code: %{public}d, msg: %{public}s', code, msg);
+        const results: Record<string, Object> = {
+          "type": TradeResultType.AddCard,
+        };
+        this.channel?.invokeMethod(CallBackType.AlibcOpenURL, buildSuccessResponse(results));
+      },
+      onFailure: (code: number, msg: string) => {
+        hilog.error(DOMAIN, TAG, 'openByUrl fail code: %{public}d, msg: %{public}s', code, msg);
+        this.channel?.invokeMethod(CallBackType.AlibcOpenURL, buildErrorResponse(code.toString(), msg));
+      }
+    });
   }
 
   /**
    * 打开商品详情
+   * 鸿蒙 SDK 可能没有 openByBizCode，通过 openByUrl 方式实现
+   * TODO: 确认 SDK 是否有 openItemDetail 或 openByBizCode API
    */
-  openItemDetail(args: Record<string, Object>, callback: (result: Record<string, Object | null>) => void): void {
-    const itemID = (args["itemID"] as string) ?? "";
-    const backUrl = (args[AlibcConstKey.KeyBackUrl] as string) ?? "";
-    const openTypeIndex = (args[AlibcConstKey.KeyOpenType] as number) ?? 0;
-    const schemeTypeIndex = (args[AlibcConstKey.KeySchemeType] as number) ?? 0;
-    const taokeParamsMap = args[AlibcConstKey.KeyTaokeParams] as Record<string, Object> | null;
-    const trackParam = args[AlibcConstKey.KeyTrackParam] as Record<string, Object> | null;
+  openItemDetail(args: Record<string, Object>): void {
+    const itemID = (args[AlibcConstKey.KeyItemID] as string) ?? "";
+    const showParams: AlibcShowParams = buildShowParams(args);
+    const taokeParams: AlibcTaokeParams = buildTaokeParams(args);
 
-    // TODO: 替换为鸿蒙百川 SDK 的实际 API
-    // 参考 Android:
-    // val page = AlibcDetailPage(itemID)
-    // AlibcTrade.openByBizCode(activity, page, ...)
+    // 尝试使用 SDK 可能提供的 openItemDetail API
+    // 如果不存在，则降级为 openByUrl
+    const itemUrl = `https://item.taobao.com/item.htm?id=${itemID}`;
 
-    console.info(TAG, `openItemDetail called, itemID=${itemID}`);
+    Alibc.openByUrl({
+      url: itemUrl,
+      showParams,
+      taokeParams,
+      needBaichuanLinkConvert: false,
+      onSuccess: (code: number, msg: string) => {
+        hilog.info(DOMAIN, TAG, 'openItemDetail success code: %{public}d, msg: %{public}s', code, msg);
+        const results: Record<string, Object> = {
+          "type": TradeResultType.AddCard,
+        };
+        this.channel?.invokeMethod(CallBackType.AlibcOpenDetail, buildSuccessResponse(results));
+      },
+      onFailure: (code: number, msg: string) => {
+        hilog.error(DOMAIN, TAG, 'openItemDetail fail code: %{public}d, msg: %{public}s', code, msg);
+        this.channel?.invokeMethod(CallBackType.AlibcOpenDetail, buildErrorResponse(code.toString(), msg));
+      }
+    });
   }
 
   /**
    * 打开店铺
+   * TODO: 确认 SDK 是否有 openShop API
    */
-  openShop(args: Record<string, Object>, callback: (result: Record<string, Object | null>) => void): void {
-    const shopId = (args["shopId"] as string) ?? "";
-    const backUrl = (args[AlibcConstKey.KeyBackUrl] as string) ?? "";
-    const openTypeIndex = (args[AlibcConstKey.KeyOpenType] as number) ?? 0;
-    const schemeTypeIndex = (args[AlibcConstKey.KeySchemeType] as number) ?? 0;
-    const taokeParamsMap = args[AlibcConstKey.KeyTaokeParams] as Record<string, Object> | null;
-    const trackParam = args[AlibcConstKey.KeyTrackParam] as Record<string, Object> | null;
+  openShop(args: Record<string, Object>): void {
+    const shopId = (args[AlibcConstKey.KeyShopId] as string) ?? "";
+    const showParams: AlibcShowParams = buildShowParams(args);
+    const taokeParams: AlibcTaokeParams = buildTaokeParams(args);
 
-    // TODO: 替换为鸿蒙百川 SDK 的实际 API
-    // 参考 Android:
-    // val page = AlibcShopPage(shopId)
-    // AlibcTrade.openByBizCode(activity, page, ...)
+    const shopUrl = `https://shop.m.taobao.com/shop/shop_index.htm?shopId=${shopId}`;
 
-    console.info(TAG, `openShop called, shopId=${shopId}`);
+    Alibc.openByUrl({
+      url: shopUrl,
+      showParams,
+      taokeParams,
+      needBaichuanLinkConvert: false,
+      onSuccess: (code: number, msg: string) => {
+        hilog.info(DOMAIN, TAG, 'openShop success code: %{public}d, msg: %{public}s', code, msg);
+        const results: Record<string, Object> = {
+          "type": TradeResultType.AddCard,
+        };
+        this.channel?.invokeMethod(CallBackType.AlibcOpenShop, buildSuccessResponse(results));
+      },
+      onFailure: (code: number, msg: string) => {
+        hilog.error(DOMAIN, TAG, 'openShop fail code: %{public}d, msg: %{public}s', code, msg);
+        this.channel?.invokeMethod(CallBackType.AlibcOpenShop, buildErrorResponse(code.toString(), msg));
+      }
+    });
   }
 
   /**
    * 打开购物车
+   * TODO: 确认 SDK 是否有 openCart API
    */
-  openCart(args: Record<string, Object>, callback: (result: Record<string, Object | null>) => void): void {
-    const backUrl = (args[AlibcConstKey.KeyBackUrl] as string) ?? "";
-    const openTypeIndex = (args[AlibcConstKey.KeyOpenType] as number) ?? 0;
-    const schemeTypeIndex = (args[AlibcConstKey.KeySchemeType] as number) ?? 0;
-    const taokeParamsMap = args[AlibcConstKey.KeyTaokeParams] as Record<string, Object> | null;
-    const trackParam = args[AlibcConstKey.KeyTrackParam] as Record<string, Object> | null;
+  openCart(args: Record<string, Object>): void {
+    const showParams: AlibcShowParams = buildShowParams(args);
+    const taokeParams: AlibcTaokeParams = buildTaokeParams(args);
 
-    // TODO: 替换为鸿蒙百川 SDK 的实际 API
-    // 参考 Android:
-    // val page = AlibcMyCartsPage()
-    // AlibcTrade.openByBizCode(activity, page, ...)
+    const cartUrl = 'https://h5.m.taobao.com/awp/base/cart.htm';
 
-    console.info(TAG, 'openCart called');
+    Alibc.openByUrl({
+      url: cartUrl,
+      showParams,
+      taokeParams,
+      needBaichuanLinkConvert: false,
+      onSuccess: (code: number, msg: string) => {
+        hilog.info(DOMAIN, TAG, 'openCart success code: %{public}d, msg: %{public}s', code, msg);
+        const results: Record<string, Object> = {
+          "type": TradeResultType.AddCard,
+        };
+        this.channel?.invokeMethod(CallBackType.AlibcOpenCar, buildSuccessResponse(results));
+      },
+      onFailure: (code: number, msg: string) => {
+        hilog.error(DOMAIN, TAG, 'openCart fail code: %{public}d, msg: %{public}s', code, msg);
+        this.channel?.invokeMethod(CallBackType.AlibcOpenCar, buildErrorResponse(code.toString(), msg));
+      }
+    });
   }
 
   /**
    * 设置淘客打点策略
+   * TODO: 确认鸿蒙 SDK 是否有对应的 setSyncForTaoke API
    */
   syncForTaoke(isSync: boolean): void {
-    // TODO: 替换为鸿蒙百川 SDK 的实际 API
-    // 参考 Android:
-    // AlibcTradeSDK.setSyncForTaoke(isSync)
-
-    console.info(TAG, `syncForTaoke called, isSync=${isSync}`);
+    hilog.info(DOMAIN, TAG, 'syncForTaoke: %{public}s', isSync.toString());
+    // 鸿蒙 SDK 暂未提供此 API，如需可后续补充
   }
 
   /**
    * 设置是否使用原生支付宝
+   * TODO: 确认鸿蒙 SDK 是否有对应的 setShouldUseAlipay API
    */
   useAlipayNative(isNeed: boolean): void {
-    // TODO: 替换为鸿蒙百川 SDK 的实际 API
-    // 参考 Android: 新版本已注释此功能
-
-    console.info(TAG, `useAlipayNative called, isNeed=${isNeed}`);
+    hilog.info(DOMAIN, TAG, 'useAlipayNative: %{public}s', isNeed.toString());
+    // 鸿蒙 SDK 暂未提供此 API，如需可后续补充
   }
 }

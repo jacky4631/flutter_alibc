@@ -1,9 +1,11 @@
 /**
  * 工具类 - 参数解析与枚举转换
  * 对应 Android 端 PluginUtil.kt
+ * 使用鸿蒙百川 SDK 的实际类型：AlibcShowParams, AlibcTaokeParams, AlibcDegradeType
  */
 
 import { AlibcConstKey } from './FlutterAlibcConst';
+import { AlibcShowParams, AlibcTaokeParams, AlibcDegradeType } from '@ohos/alibc';
 
 /**
  * 构造成功响应
@@ -30,21 +32,10 @@ export function buildErrorResponse(errorCode: string, errorMessage: string): Rec
 }
 
 /**
- * 获取 OpenType 字符串
- * 0 -> "auto", 1 -> "native"
- */
-export function getOpenType(openTypeIndex: number): string {
-  if (openTypeIndex === AlibcConstKey.NativeOpenType) {
-    return "native";
-  }
-  return "auto";
-}
-
-/**
- * 获取 SchemeType 字符串
+ * 根据 Dart 层传入的索引值获取 clientType 字符串
  * 0 -> "tmall", 1 -> "taobao"
  */
-export function getSchemeType(schemeTypeIndex: number): string {
+export function getClientType(schemeTypeIndex: number): string {
   if (schemeTypeIndex === AlibcConstKey.TaoBaoSchemeType) {
     return "taobao";
   }
@@ -52,30 +43,57 @@ export function getSchemeType(schemeTypeIndex: number): string {
 }
 
 /**
- * 获取 NativeFailMode 字符串
- * 0 -> "jumpH5", 1 -> "jumpDownloadPage", 2 -> "none"
+ * 根据 Dart 层传入的索引值获取 AlibcDegradeType
+ * 0 -> H5, 1 -> Download, 2 -> NONE
  */
-export function getNativeFailMode(failModeIndex: number): string {
+export function getDegradeType(failModeIndex: number): AlibcDegradeType {
   if (failModeIndex === AlibcConstKey.JumpH5FailMode) {
-    return "jumpH5";
+    return AlibcDegradeType.H5;
   } else if (failModeIndex === AlibcConstKey.JumpDownloadPageFailMode) {
-    return "jumpDownloadPage";
+    return AlibcDegradeType.Download;
   }
-  return "none";
+  return AlibcDegradeType.NONE;
 }
 
 /**
- * 从 taokeParams Map 中提取淘客参数
+ * 从 MethodCall 参数中构建 AlibcShowParams
  */
-export function getTaokeParams(taokeParamsMap: Record<string, Object> | null): Record<string, string> | null {
-  if (taokeParamsMap === null || taokeParamsMap === undefined) {
-    return null;
-  }
-  const result: Record<string, string> = {
-    "adzoneId": (taokeParamsMap["adzoneId"] as string) ?? "",
-    "pid": (taokeParamsMap["pid"] as string) ?? "",
-    "unionId": (taokeParamsMap["unionId"] as string) ?? "",
-    "subPid": (taokeParamsMap["subPid"] as string) ?? "",
+export function buildShowParams(args: Record<string, Object>): AlibcShowParams {
+  const showParams: AlibcShowParams = {
+    clientType: getClientType((args[AlibcConstKey.KeySchemeType] as number) ?? 1),
+    backUrl: (args[AlibcConstKey.KeyBackUrl] as string) ?? '',
   };
-  return result;
+
+  const isNeedCustomFailMode = (args[AlibcConstKey.KeyIsNeedCustomNativeFailMode] as boolean) ?? false;
+  if (isNeedCustomFailMode) {
+    const failModeIndex = (args[AlibcConstKey.KeyNativeFailMode] as number) ?? 2;
+    showParams.degradeType = getDegradeType(failModeIndex);
+  }
+
+  return showParams;
+}
+
+/**
+ * 从 MethodCall 参数中构建 AlibcTaokeParams
+ */
+export function buildTaokeParams(args: Record<string, Object>): AlibcTaokeParams {
+  const taokeParams: AlibcTaokeParams = {};
+  const taokeParamsMap = args[AlibcConstKey.KeyTaokeParams] as Record<string, Object> | null;
+
+  if (taokeParamsMap !== null && taokeParamsMap !== undefined) {
+    taokeParams.pid = (taokeParamsMap["pid"] as string) ?? '';
+    taokeParams.unionId = (taokeParamsMap["unionId"] as string) ?? '';
+    taokeParams.subPid = (taokeParamsMap["subPid"] as string) ?? '';
+
+    const extParamsObj = taokeParamsMap["extParams"] as Record<string, string> | null;
+    if (extParamsObj !== null && extParamsObj !== undefined) {
+      const extMap = new Map<string, string>();
+      Object.entries(extParamsObj).forEach((item: [string, string]) => {
+        extMap.set(item[0], item[1]);
+      });
+      taokeParams.extParams = extMap;
+    }
+  }
+
+  return taokeParams;
 }
