@@ -1,0 +1,13 @@
+{
+  "name": "flutter_alibc",
+  "version": "1.0.0",
+  "description": "Alibc Trade SDK for HarmonyOS",
+  "main": "Index.ets",
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@ohos/flutter_ohos": "file:./har/flutter.har",
+    "alibc": "file:./libs/alibc.har",
+    "alibc-default": "file:./libs/alibc-default.hsp"
+  }
+}

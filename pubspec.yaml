@@ -31,6 +31,10 @@ flutter:
         pluginClass: FlutterAlibcPlugin
       ios:
         pluginClass: FlutterAlibcPlugin
+      ohos:
+        package: com.wxwx.flutter_alibc
+        pluginClass: FlutterAlibcPlugin
+        fileName: flutter_alibc
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
