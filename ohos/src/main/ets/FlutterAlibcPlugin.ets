@@ -7,6 +7,7 @@
 
 import {
   AbilityAware,
+  NewWantListener,
   AbilityPluginBinding,
   FlutterPlugin,
   FlutterPluginBinding,
@@ -16,6 +17,8 @@ import {
   MethodResult,
 } from '@ohos/flutter_ohos';
 import { common } from '@kit.AbilityKit';
+import Want from '@ohos.app.ability.Want';
+import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import hilog from '@ohos.hilog';
 import { Alibc } from '@ohos/alibc';
 import FlutterAlibcHandle from './FlutterAlibcHandle';
@@ -25,10 +28,11 @@ const CHANNEL_NAME: string = "flutter_alibc";
 const TAG: string = 'FlutterAlibcPlugin';
 const DOMAIN: number = 0xF101;
 
-export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHandler, AbilityAware {
+export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHandler, AbilityAware, NewWantListener {
   private channel: MethodChannel | null = null;
   private handle: FlutterAlibcHandle | null = null;
   private context: common.UIAbilityContext | null = null;
+  private abilityBinding: AbilityPluginBinding | null = null;
 
   getUniqueClassName(): string {
     return "FlutterAlibcPlugin";
@@ -52,6 +56,8 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
   onAttachedToAbility(binding: AbilityPluginBinding): void {
     hilog.info(DOMAIN, TAG, 'onAttachedToAbility');
     this.context = binding.getAbility().context;
+    this.abilityBinding = binding;
+    binding.addOnNewWantListener(this);
     if (this.handle !== null && this.context !== null) {
       this.handle.setContext(this.context);
     }
@@ -59,7 +65,14 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
 
   onDetachedFromAbility(): void {
     hilog.info(DOMAIN, TAG, 'onDetachedFromAbility');
+    this.abilityBinding?.removeOnNewWantListener(this);
+    this.abilityBinding = null;
     this.context = null;
+  }
+
+  onNewWant(want: Want, launchParams: AbilityConstant.LaunchParam): void {
+    hilog.info(DOMAIN, TAG, 'onNewWant -> Alibc.onNewWant');
+    Alibc.onNewWant(want);
   }
 
   onMethodCall(call: MethodCall, result: MethodResult): void {
