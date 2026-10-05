@@ -69,8 +69,8 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
         break;
 
       case "initAlibc": {
-        const version = call.argument<string>(AlibcConstKey.KeyVersion) ?? null;
-        const appName = call.argument<string>(AlibcConstKey.KeyAppName) ?? null;
+        const version: string = ((call.args as Record<string, Object>)[AlibcConstKey.KeyVersion] ?? '') as string;
+        const appName: string = ((call.args as Record<string, Object>)[AlibcConstKey.KeyAppName] ?? '') as string;
         this.handle?.initAlibc(version, appName, (response: Record<string, Object | null>) => {
           result.success(response);
         });
@@ -89,49 +89,49 @@ export default class FlutterAlibcPlugin implements FlutterPlugin, MethodCallHand
         break;
 
       case "taoKeLogin": {
-        const args = call.arguments as Record<string, Object>;
+        const args = call.args as Record<string, Object>;
         this.handle?.taoKeLogin(args);
         break;
       }
 
       case "taoKeLoginForCode": {
-        const args = call.arguments as Record<string, Object>;
+        const args = call.args as Record<string, Object>;
         this.handle?.taoKeLoginForCode(args);
         break;
       }
 
       case "openByUrl": {
-        const args = call.arguments as Record<string, Object>;
+        const args = call.args as Record<string, Object>;
         this.handle?.openByUrl(args);
         break;
       }
 
       case "openItemDetail": {
-        const args = call.arguments as Record<string, Object>;
+        const args = call.args as Record<string, Object>;
         this.handle?.openItemDetail(args);
         break;
       }
 
       case "openShop": {
-        const args = call.arguments as Record<string, Object>;
+        const args = call.args as Record<string, Object>;
         this.handle?.openShop(args);
         break;
       }
 
       case "openCart": {
-        const args = call.arguments as Record<string, Object>;
+        const args = call.args as Record<string, Object>;
         this.handle?.openCart(args);
         break;
       }
 
       case "syncForTaoke": {
-        const isSync = call.argument<boolean>(AlibcConstKey.KeyIsSync) ?? false;
+        const isSync: boolean = ((call.args as Record<string, Object>)[AlibcConstKey.KeyIsSync] ?? false) as boolean;
         this.handle?.syncForTaoke(isSync);
         break;
       }
 
       case "useAlipayNative": {
-        const isNeed = call.argument<boolean>(AlibcConstKey.KeyIsNeed) ?? false;
+        const isNeed: boolean = ((call.args as Record<string, Object>)[AlibcConstKey.KeyIsNeed] ?? false) as boolean;
         this.handle?.useAlipayNative(isNeed);
         break;
       }

@@ -64,7 +64,7 @@ export default class FlutterAlibcHandle {
       onSuccess: (user) => {
         hilog.info(DOMAIN, TAG, 'login success, openId: %{public}s', user?.openId ?? '');
         const userInfo: Record<string, string> = {
-          "nick": user?.nick ?? '',
+          "nick": '',
           "avatarUrl": user?.avatarUrl ?? '',
           "openId": user?.openId ?? '',
           "openSid": user?.openSid ?? '',
@@ -103,6 +103,7 @@ export default class FlutterAlibcHandle {
     Alibc.authorize({
       appName: 'flutter_alibc',
       appKey: Alibc.getAppKey(),
+      appLogoSrc: $r('app.media.icon'),
       onSuccess: (params) => {
         hilog.info(DOMAIN, TAG, 'authorize success, accessToken: %{public}s', params.accessToken);
         const resMap: Record<string, string> = {
@@ -130,6 +131,7 @@ export default class FlutterAlibcHandle {
     Alibc.authorize({
       appName: 'flutter_alibc',
       appKey: Alibc.getAppKey(),
+      appLogoSrc: $r('app.media.icon'),
       onSuccess: (params) => {
         hilog.info(DOMAIN, TAG, 'authorize for code success, accessToken: %{public}s', params.accessToken);
         const resMap: Record<string, string> = {

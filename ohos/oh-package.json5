@@ -7,6 +7,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@ohos/flutter_ohos": "file:./har/flutter.har",
-    "@ohos/alibc": "file:./libs/alibc.har"
+    "@ohos/alibc": "file:./libs/alibc-default.tgz"
   }
 }
