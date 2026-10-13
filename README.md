@@ -4,6 +4,62 @@ Flutter版本的阿里百川，原作者维护太慢，这个插件以后我自�
 
 苹果安卓测试没问题，已上架稳定运行四个多月。使用时记得升级最新版安全图，记得看下面的注意点。
 
+## iOS Swift Package Manager
+
+本插件同时提供 SPM 和 CocoaPods 集成。SPM 最低 iOS 13，清单位于
+`ios/flutter_alibc/Package.swift`，库产品名为 `flutter-alibc`。
+SPM 集成要求 Flutter 3.44 及以上（提供 `FlutterFramework` 包），并由 Flutter 自动集成；
+较早版本请继续使用 CocoaPods。遵循
+[Flutter 官方迁移说明](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-plugin-authors)。
+
+### 百川资源配置（SPM 必需）
+
+旧版百川 SDK 从主应用 bundle 查找资源，而 SPM 把资源放在独立 bundle 中。
+SDK 是静态库，代码已经链接进 App；Xcode 嵌入静态 framework 时可能生成空 dylib
+占位文件，iOS 安装器会拒绝这些包。以下脚本同时复制资源、清除这 20 个 SDK 的占位包。
+只针对本仓库的静态 SDK 使用清理逻辑；升级到动态 SDK 时须同步调整。
+在宿主 Xcode 工程 Runner 的 Build Phases 中，添加 Run Script，放在资源复制之后、
+签名之前，使用以下脚本把 SDK 的五个资源 bundle 复制到主应用中。
+仓库 example 已配置此脚本。其他宿主应用需
+取消勾选 “Based on dependency analysis”，并将 Runner 的
+`ENABLE_USER_SCRIPT_SANDBOXING` 设为 `NO`（Flutter 构建脚本也使用此配置）。
+
+```sh
+set -eu
+sdk_resources="${BUILT_PRODUCTS_DIR}/flutter_alibc_flutter_alibc.bundle"
+app_resources="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
+for name in AlibabaAuthSDK NBResource NebulaWK SmartLink WindVaneBasic; do
+  /usr/bin/ditto "${sdk_resources}/${name}.bundle" "${app_resources}/${name}.bundle"
+done
+
+# These SDKs are static archives, already linked into the app executable.
+# Xcode creates empty dylib placeholders when embedding static frameworks.
+# Keep the SDK resource bundles above; do not ship those placeholders.
+app_frameworks="${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+for name in AlibabaAuthEntrance AlibabaAuthExt AlibabaAuthSDK AlibcLinkPartnerSDK AlibcTradeBiz AlibcTradeSDK MtopSDK SGIndieKit SGMain SGMiddleTier SGNoCaptcha SGSecurityBody SecurityGuardSDK UTDID UTMini WindVane WindVaneBasic WindVaneCore mtopcoreopen mtopext; do
+  /bin/rm -rf "${app_frameworks}/${name}.framework"
+done
+```
+
+安全图片 `yw_1222_baichuan.jpg` 仍由宿主应用提供，并加入 Runner 的
+Copy Bundle Resources；URL Schemes、回跳和百川应用配置沿用原有说明。
+CocoaPods 通过 podspec 自动复制 SDK 资源，无需上述脚本。
+
+### 二进制和验证
+
+`ios/flutter_alibc/Frameworks` 包含从仓库原始 framework 拆分的 20 个 XCFramework，
+支持 arm64 真机和 x86_64 模拟器。原 SDK 不包含 arm64 模拟器二进制；
+Apple Silicon 上建议使用真机，或使用 Xcode 支持的 Rosetta x86_64 模拟器。
+重新打包不会生成缺失架构。更新原 SDK 后，在 macOS 安装 Xcode 并执行：
+
+```sh
+python3 tool/build_ios_xcframeworks.py
+```
+
+原始 framework 保留为重新打包的输入；SPM 和 CocoaPods 共用 XCFramework 和 Swift 源码。
+示例通过 `path: ../` 引用本地插件。支持 Dart 2.12 至 Dart 3。
+验证运行时请在真机检查初始化、淘宝登录、URL 回跳和交易页面。
+
 # 百川SDK版本
 
 ```

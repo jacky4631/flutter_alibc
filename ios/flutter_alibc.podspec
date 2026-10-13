@@ -13,9 +13,9 @@ A new flutter plugin project.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'Classes/**/*', 'flutter_alibc/Sources/flutter_alibc/**/*.swift'
   s.dependency 'Flutter'
-  s.vendored_frameworks = 'Source/framework/**/*.framework'
+  s.vendored_frameworks = 'flutter_alibc/Frameworks/*.xcframework'
   s.resource = 'Source/bundle/*.bundle'
   s.platform = :ios, '9.0'
   s.frameworks = "CoreTelephony","CoreMotion","UIKit","Foundation"

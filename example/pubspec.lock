@@ -65,11 +65,10 @@ packages:
   flutter_alibc:
     dependency: "direct main"
     description:
-      name: flutter_alibc
-      sha256: "8f449b993da17fc89674d685f43a8b22a69d2dab5f7d1f53ad61ea34be3b9b8c"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.0.21-nullsafety"
+      path: ".."
+      relative: true
+    source: path
+    version: "1.0.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter

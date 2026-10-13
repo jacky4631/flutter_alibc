@@ -1,0 +1,5 @@
+framework module AlibcLinkPartnerSDK {
+  umbrella "Headers"
+  export *
+  module * { export * }
+}
